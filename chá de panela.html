@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmação de Presença e Escolha de Presente</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+        }
+        input[type="text"], select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            width: 50%;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+        .popup-content h2 {
+            color: green;
+            margin-bottom: 20px;
+        }
+        .popup-content button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .popup-content button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Confirmação de Presença e Escolha de Presente</h1>
+    <div class="container">
+        <form id="confirmationForm">
+            <!-- Pergunta sobre presença -->
+            <div class="form-group">
+                <label for="attendance">Você vai comparecer ao chá de panela?</label>
+                <select name="attendance" id="attendance" required>
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                </select>
+            </div>
+
+            <!-- Lista de presentes -->
+            <div class="form-group">
+                <label for="giftList">Escolha o presente que você deseja comprar:</label>
+                <select name="gift" id="giftList" required>
+                    <option value="">Selecione...</option>
+                    <option value="Panela de pressão">Panela de pressão</option>
+                    <option value="Jogo de copos">Jogo de copos</option>
+                    <option value="Faqueiro">Faqueiro</option>
+                    <option value="Talheres de sobremesa">Talheres de sobremesa</option>
+                    <option value="Kit de roupa de cama">Kit de roupa de cama</option>
+                </select>
+            </div>
+
+            <!-- Opção de entrega -->
+            <div class="form-group">
+                <label for="deliveryOption">Como você deseja entregar o presente?</label>
+                <select name="delivery" id="deliveryOption" required>
+                    <option value="">Selecione...</option>
+                    <option value="Pessoalmente">Entregar pessoalmente</option>
+                    <option value="Na casa da noiva">Entregar na casa da noiva</option>
+                </select>
+            </div>
+
+            <!-- Nome do comprador -->
+            <div class="form-group">
+                <label for="buyerName">Nome de quem comprou o presente:</label>
+                <input type="text" name="name" id="buyerName" placeholder="Digite seu nome" required>
+            </div>
+
+            <!-- Botão de envio -->
+            <button type="submit">Confirmar Presença e Enviar</button>
+        </form>
+    </div>
+
+    <!-- Pop-up de resposta -->
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <h2 id="popupMessage">Sua resposta foi registrada com sucesso!</h2>
+            <p>Você pode preencher novamente, se necessário.</p>
+            <button onclick="closePopup()">Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('confirmationForm');
+        const popup = document.getElementById('popup');
+        const popupMessage = document.getElementById('popupMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede o envio padrão do formulário
+
+            const formData = new FormData(form); // Cria os dados do formulário para envio
+
+            try {
+                // Envia os dados para o Google Apps Script
+                const response = await fetch('https://script.google.com/macros/s/AKfycbwv-O_huLcA9swxBDuuN47h0aYzyY1rHrDjuB3HZmiWnGood3XvYpAzV_jZ_kbAeNlQ/exec', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json(); // Processa a resposta do Apps Script
+
+                if (result.status === 'success') {
+                    // Exibe o pop-up de sucesso
+                    popupMessage.textContent = 'Sua resposta foi registrada com sucesso!';
+                    popup.style.display = 'flex';
+
+                    // Reseta o formulário
+                    form.reset();
+                } else if (result.status === 'duplicate') {
+                    popupMessage.textContent = 'Resposta já registrada para este nome. Por favor, entre em contato.';
+                    popup.style.display = 'flex';
+                } else {
+                    throw new Error(result.message || 'Erro desconhecido.');
+                }
+            } catch (error) {
+                popupMessage.textContent = `Erro ao enviar: ${error.message}`;
+                popup.style.display = 'flex';
+            }
+        });
+
+        function closePopup() {
+            popup.style.display = 'none'; // Oculta o pop-up
+        }
+    </script>
+</body>
+</html>
